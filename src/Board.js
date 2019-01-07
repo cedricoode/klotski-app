@@ -9,7 +9,7 @@ export default class Board extends PureComponent {
     super(props);
 
     this.state = {
-      initialPieces: gamePositions[1]
+      initialPieces: gamePositions[props.defaultLayout]
     };
   }
 
