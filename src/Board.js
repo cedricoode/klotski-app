@@ -1,15 +1,55 @@
 import React, { PureComponent } from "react";
-import { gamePositions, PieceType } from "./klotski";
+import {
+  gamePositions,
+  PieceType,
+  Game,
+  GamePosition,
+  findSolution
+} from "./klotski";
 
 export default class Board extends PureComponent {
   static width = 200;
   static height = 250;
-  state = {
-    game: 0
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      initialPieces: gamePositions[0]
+    };
+  }
+
+  componentDidMount() {
+    const gamePosition = new GamePosition();
+    gamePosition.initPosition(this.state.initialPieces, 1);
+    const game = new Game(gamePosition);
+    findSolution(game);
+    if (game.solutions.length > 0) {
+      console.log("solutions found!");
+    }
+    this.setState({ gamePosition, game });
+  }
+
+  handlePlay = () => {
+    const { game } = this.state;
+    let solution = null;
+    if (game.solutions.length > 0) {
+      solution = game.memories[game.solutions[0]];
+    }
+    const plays = solution.reversePlay();
+    let step = 0;
+    const handle = setInterval(() => {
+      if (step < plays.length) {
+        console.log("playing, step: ", step + 1);
+        this.setState({ initialPieces: plays[step++].getPieces() });
+      } else {
+        handle && clearInterval(handle);
+      }
+    }, 1000);
   };
 
   renderBlocks() {
-    const gamePieces = gamePositions[this.state.game];
+    const gamePieces = this.state.initialPieces;
 
     const blockWidth = Board.width / this.props.width;
     const blockHeight = Board.height / this.props.height;
@@ -53,7 +93,19 @@ export default class Board extends PureComponent {
   }
   render() {
     const blocks = this.renderBlocks();
-    return <div id="frame">{blocks}</div>;
+    return (
+      <div>
+        <div id="frame">{blocks}</div>
+        <div>
+          <button
+            style={{ width: 80, height: 40, margin: 24, fontSize: 24 }}
+            onClick={this.handlePlay}
+          >
+            Play
+          </button>
+        </div>
+      </div>
+    );
   }
 }
 

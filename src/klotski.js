@@ -480,7 +480,7 @@ class Move {
 
 let hashTime = 0;
 
-class GamePosition {
+export class GamePosition {
   constructor() {
     this.board = new Board();
     this.parent = null;
@@ -562,7 +562,7 @@ class GamePosition {
 }
 
 let memoryHit = 0;
-class Game {
+export class Game {
   constructor(initialPosition) {
     this.positions = [initialPosition];
     this.solutions = [];
@@ -584,7 +584,7 @@ class Game {
   }
 }
 
-function findSolution(game) {
+export function findSolution(game) {
   //try each move for each piece.
   let index = 0;
   const start = Date.now();
