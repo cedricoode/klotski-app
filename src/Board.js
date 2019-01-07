@@ -87,37 +87,11 @@ export default class Board extends PureComponent {
     const blockWidth = Board.width / this.props.width;
     const blockHeight = Board.height / this.props.height;
     const rslt = gamePieces.map(gamePiece => {
-      const style = {};
-      const className = ["block"];
-      if (gamePiece.type === PieceType.V2) {
-        style.width = blockWidth;
-        style.height = blockHeight * 2;
-        style.left = blockWidth * gamePiece.position.left;
-        style.top = blockHeight * gamePiece.position.top;
-        className.push("v2");
-      } else if (gamePiece.type === PieceType.H2) {
-        style.width = blockWidth * 2;
-        style.height = blockHeight;
-        style.left = blockWidth * gamePiece.position.left;
-        style.top = blockHeight * gamePiece.position.top;
-        className.push("h2");
-      } else if (gamePiece.type === PieceType.CUBE) {
-        style.width = blockWidth * 2;
-        style.height = blockHeight * 2;
-        style.left = blockWidth * gamePiece.position.left;
-        style.top = blockHeight * gamePiece.position.top;
-        className.push("cube");
-      } else if (gamePiece.type === PieceType.BLOCK) {
-        style.width = blockWidth;
-        style.height = blockHeight;
-        style.left = blockWidth * gamePiece.position.left;
-        style.top = blockHeight * gamePiece.position.top;
-        className.push("blk");
-      }
       return (
         <Block
-          className={className.join(" ")}
-          style={style}
+          gamePiece={gamePiece}
+          blockHeight={blockHeight}
+          blockWidth={blockWidth}
           key={gamePiece.id}
         />
       );
@@ -150,6 +124,31 @@ export default class Board extends PureComponent {
 
 class Block extends PureComponent {
   render() {
-    return <div className={this.props.className} style={this.props.style} />;
+    const { blockHeight, blockWidth, gamePiece } = this.props;
+    let pieceWidth = 1;
+    let pieceHeight = 1;
+    let left = gamePiece.position.left;
+    let top = gamePiece.position.top;
+    const className = ["block"];
+    if (gamePiece.type === PieceType.H2) {
+      pieceWidth = 2;
+      className.push("h2");
+    } else if (gamePiece.type === PieceType.CUBE) {
+      pieceWidth = 2;
+      pieceHeight = 2;
+      className.push("cube");
+    } else if (gamePiece.type === PieceType.V2) {
+      pieceHeight = 2;
+      className.push("v2");
+    } else {
+      className.push("blk");
+    }
+    const style = {
+      height: pieceHeight * blockHeight,
+      width: pieceWidth * blockWidth,
+      left: left * blockWidth,
+      top: top * blockHeight
+    };
+    return <div className={className.join(" ")} style={style} />;
   }
 }
