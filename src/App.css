@@ -30,3 +30,34 @@
     transform: rotate(360deg);
   }
 }
+
+#frame {
+  position: relative;
+  display: inline-block;
+  background: #996600;
+  width: 200px;
+  height: 250px;
+  border: 7px ridge brown;
+}
+
+.block {
+  box-sizing: border-box; /* create the border "inside" the element */
+  border: 4px ridge black;
+  position: absolute;
+}
+
+.cube {
+  background: radial-gradient(ellipse at top left, firebrick, red);
+}
+
+.v2 {
+  background: radial-gradient(ellipse at top left, navy, blue);
+}
+
+.h2 {
+  background: radial-gradient(ellipse at top left, darkgreen, limegreen);
+}
+
+.blk {
+  background: radial-gradient(ellipse at top left, pink, yellow);
+}
