@@ -9,14 +9,12 @@ export default class Board extends PureComponent {
     super(props);
 
     this.state = {
-      initialPieces: gamePositions[0]
+      initialPieces: gamePositions[1]
     };
   }
 
   componentDidMount() {
-    const BOARD_WIDTH = 4;
-    const BOARD_HEIGHT = 5;
-    const gamePosition = new GamePosition(BOARD_WIDTH, BOARD_HEIGHT);
+    const gamePosition = new GamePosition(this.props.width, this.props.height);
     gamePosition.initPosition(this.state.initialPieces, 1);
     const game = new Game(gamePosition);
     game.findSolution();
