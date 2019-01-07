@@ -25,25 +25,64 @@ export default class Board extends PureComponent {
   }
 
   handlePlay = () => {
-    const { game } = this.state;
-    let solution = null;
-    if (game.solutions.length > 0) {
-      solution = game.memories[game.solutions[0]];
+    const { intervalHandle, autoPlayState } = this.state;
+
+    if (autoPlayState === undefined) {
+      this.playGame();
+    } else if (autoPlayState === "playing") {
+      clearInterval(intervalHandle);
+      this.setState({
+        intervalHandle: undefined,
+        autoPlayState: "paused"
+      });
+    } else if (autoPlayState === "paused") {
+      this.playGame();
+    } else if (autoPlayState === "finished") {
+      this.setState({
+        intervalHandle: undefined,
+        autoPlayState: undefined,
+        step: undefined
+      });
     }
-    const plays = solution.reversePlay();
-    let step = 0;
+  };
+
+  playGame() {
+    let { game, plays, step } = this.state;
+    plays = plays || (game.hasSolution() && game.getSolution());
+    if (!plays) {
+      alert("No solution found!");
+    }
+    step = step === undefined ? 0 : step;
     const handle = setInterval(() => {
       if (step < plays.length) {
-        console.log("playing, step: ", step + 1);
-        this.setState({ initialPieces: plays[step++].getPieces() });
+        this.setState({ step });
+        step++;
       } else {
         handle && clearInterval(handle);
+        this.setState({ intervalHandle: undefined, autoPlayState: "finished" });
       }
     }, 100);
+    this.setState({
+      intervalHandle: handle,
+      autoPlayState: "playing",
+      plays,
+      step
+    });
+  }
+
+  getBoardToRender = () => {
+    const { autoPlayState, step, plays } = this.state;
+    if (autoPlayState === "playing" || autoPlayState === "paused") {
+      return plays[step].getPieces();
+    } else if (autoPlayState === "finished") {
+      return plays[plays.length - 1].getPieces();
+    } else {
+      return this.state.initialPieces;
+    }
   };
 
   renderBlocks() {
-    const gamePieces = this.state.initialPieces;
+    const gamePieces = this.getBoardToRender();
 
     const blockWidth = Board.width / this.props.width;
     const blockHeight = Board.height / this.props.height;
@@ -87,15 +126,21 @@ export default class Board extends PureComponent {
   }
   render() {
     const blocks = this.renderBlocks();
+    const buttonTextMap = {
+      playing: "Pause",
+      paused: "Continue",
+      finished: "Reinitialize",
+      undefined: "Play"
+    };
     return (
       <div>
         <div id="frame">{blocks}</div>
         <div>
           <button
-            style={{ width: 80, height: 40, margin: 24, fontSize: 24 }}
+            style={{ width: 160, height: 40, margin: 24, fontSize: 24 }}
             onClick={this.handlePlay}
           >
-            Play
+            {buttonTextMap[this.state.autoPlayState]}
           </button>
         </div>
       </div>
