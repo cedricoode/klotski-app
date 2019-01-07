@@ -11,9 +11,13 @@ class App extends Component {
     e.preventDefault();
   }
   handleChange = e => {
-    this.setState({
-      [e.target.name]: e.target.value
-    });
+    if (
+      (e.target.name === "width" && e.target.value >= 4) ||
+      (e.target.name === "height" && e.target.value >= 5)
+    )
+      this.setState({
+        [e.target.name]: e.target.value
+      });
   };
   render() {
     return (
