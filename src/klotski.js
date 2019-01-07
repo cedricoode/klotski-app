@@ -1,5 +1,17 @@
 const hash = require("object-hash");
 
+const DIRECTIONS = {
+  LEFT: 0,
+  UP: 1,
+  RIGHT: 2,
+  DOWN: 3
+};
+
+const DIRECTIONS_MAP = Object.keys(DIRECTIONS).reduce((prev, curr) => {
+  prev[DIRECTIONS[curr]] = curr;
+  return prev;
+}, {});
+
 export const PieceType = {
   BLOCK: 0,
   V2: 1,
@@ -9,6 +21,10 @@ export const PieceType = {
   BOARDER: 5
 };
 
+const successTop = 3;
+const successLeft = 1;
+
+const HASH_METHOD = "ZOBRIST";
 function printPiece(type) {
   switch (type) {
     case PieceType.BLOCK:
@@ -27,8 +43,6 @@ function printPiece(type) {
       return "! ";
   }
 }
-const BOARD_WIDTH = 4;
-const BOARD_HEIGHT = 5;
 
 class Position {
   constructor(left, top) {
@@ -88,25 +102,7 @@ class Position {
   }
 }
 
-function generateZobrisHashMap(width, height, pieceTypes) {
-  const rslt = [];
-  for (let i = 0; i < height; i++) {
-    rslt.push([]);
-    for (let j = 0; j < width; j++) {
-      rslt[i].push([]);
-      for (let k = 0; k < Object.keys(pieceTypes).length; k++) {
-        let tmp = 0;
-        while (!tmp) {
-          tmp = Math.floor(Math.random() * Math.pow(2, 31));
-        }
-        rslt[i][j].push(tmp);
-      }
-    }
-  }
-  return rslt;
-}
-
-const zobristHash = generateZobrisHashMap(BOARD_WIDTH, BOARD_HEIGHT, PieceType);
+const successPosition = new Position(successLeft, successTop);
 
 class Piece {
   constructor(type, position, id, name) {
@@ -204,16 +200,17 @@ export const gamePositions = [
   ]
 ];
 
-const successTop = 3;
-const successLeft = 1;
-const successPosition = new Position(successLeft, successTop);
-
-const HASH_METHOD = "ZOBRIST";
-
 class Board {
-  constructor() {
-    this.width = BOARD_WIDTH;
-    this.height = BOARD_HEIGHT;
+  constructor(width, height) {
+    if (parseInt(width) !== width) {
+      throw new Error("value of width is invalid:  ", width);
+    }
+
+    if (parseInt(height) !== height) {
+      throw new Error("value of height is invalid: ", height);
+    }
+    this.width = width;
+    this.height = height;
     this.piecesPlaced = false;
     this.initBoard();
   }
@@ -392,22 +389,22 @@ class Board {
     return true;
   }
 
-  getZobristHash() {
+  getZobristHash(hashMap) {
     let hash = 0;
     for (let i = 0; i < this.height; i++) {
       for (let j = 0; j < this.width; j++) {
-        hash ^= zobristHash[i][j][this.board[i + 1][j + 1].type];
+        hash ^= hashMap[i][j][this.board[i + 1][j + 1].type];
       }
     }
     return hash;
   }
 
-  getMirrorZobristHash() {
+  getMirrorZobristHash(hashMap) {
     let hash = 0;
     for (let i = 0; i < this.height; i++) {
       for (let j = 0; j < this.width; j++) {
         hash ^=
-          zobristHash[i][j][
+          hashMap[i][j][
             this.getPiece(new Position(j, i)).copyMirrorDumbPiece().type
           ];
       }
@@ -427,25 +424,25 @@ class Board {
     return hash(mirrorDumbPieces.sort((a, b) => a.lessThan(b)));
   }
 
-  getHash() {
+  getHash(hashMap) {
     if (this.hash) {
       return this.hash;
     }
     if (HASH_METHOD === "ZOBRIST") {
-      this.hash = this.getZobristHash();
+      this.hash = this.getZobristHash(hashMap);
     } else {
       this.hash = this.getPieceHash();
     }
     return this.hash;
   }
 
-  getMirrorHash() {
+  getMirrorHash(hashMap) {
     if (this.mirrorHash) {
       return this.mirrorHash;
     }
 
     if (HASH_METHOD === "ZOBRIST") {
-      this.mirrorHash = this.getMirrorZobristHash();
+      this.mirrorHash = this.getMirrorZobristHash(hashMap);
     } else {
       this.mirrorHash = this.getMirrorPieceHash();
     }
@@ -478,14 +475,21 @@ class Move {
   }
 }
 
-let hashTime = 0;
-
 export class GamePosition {
-  constructor() {
-    this.board = new Board();
+  constructor(width, height) {
+    this.board = new Board(width, height);
     this.parent = null;
     this.step = 0;
     this.move = null;
+    this.width = width;
+    this.height = height;
+  }
+  getBoardWidth() {
+    return this.width;
+  }
+
+  getBoardHeight() {
+    return this.height;
   }
 
   getPieces() {
@@ -506,7 +510,7 @@ export class GamePosition {
   }
 
   copy() {
-    const rslt = new GamePosition();
+    const rslt = new GamePosition(this.width, this.height);
     const copyPieces = this.board.pieces.map(p => p.copy());
     rslt.initPosition(copyPieces, this.cubeIndex);
     return rslt;
@@ -524,6 +528,23 @@ export class GamePosition {
     return this.board.movePieceTo(pieceIndex, direction);
   }
 
+  tryToMovePiece = (pieceIndex, direction, isContinuing = false) => {
+    if (this.canPieceMoveTo(pieceIndex, direction)) {
+      const newGamePosition = this.copy();
+      newGamePosition.movePieceTo(pieceIndex, direction);
+
+      newGamePosition.parent = this;
+      newGamePosition.step++;
+      newGamePosition.move = new Move(pieceIndex, direction, 1);
+      if (isContinuing) {
+        newGamePosition.parent = this.parent;
+        newGamePosition.step--;
+        newGamePosition.move = new Move(pieceIndex, direction, 2);
+      }
+      return newGamePosition;
+    }
+    return null;
+  };
   printMove() {
     console.log(
       `Moving pieace: ${this.getPiece(this.move.pieceIndex).name} ${
@@ -536,18 +557,12 @@ export class GamePosition {
     this.board.printBoard();
   }
 
-  getHash() {
-    const start = Date.now();
-    const hash = this.board.getHash();
-    hashTime += Date.now() - start;
-    return hash;
+  getHash(hashMap) {
+    return this.board.getHash(hashMap);
   }
 
-  getMirrorHash() {
-    const start = Date.now();
-    const hash = this.board.getMirrorHash();
-    hashTime += Date.now() - start;
-    return hash;
+  getMirrorHash(hashMap) {
+    return this.board.getMirrorHash(hashMap);
   }
 
   reversePlay() {
@@ -560,118 +575,90 @@ export class GamePosition {
     return moves;
   }
 }
-
-let memoryHit = 0;
+function generateZobrisHashMap(width, height, pieceTypes) {
+  const rslt = [];
+  for (let i = 0; i < height; i++) {
+    rslt.push([]);
+    for (let j = 0; j < width; j++) {
+      rslt[i].push([]);
+      for (let k = 0; k < Object.keys(pieceTypes).length; k++) {
+        let tmp = 0;
+        while (!tmp) {
+          tmp = Math.floor(Math.random() * Math.pow(2, 31));
+        }
+        rslt[i][j].push(tmp);
+      }
+    }
+  }
+  return rslt;
+}
 export class Game {
   constructor(initialPosition) {
+    this.initialPosition = initialPosition;
     this.positions = [initialPosition];
     this.solutions = [];
     this.solutionCounts = 0;
     this.memories = {};
-    this.pieceHashMemory = {};
+
+    this.zobristHash = generateZobrisHashMap(
+      initialPosition.getBoardWidth(),
+      initialPosition.getBoardHeight(),
+      PieceType
+    );
   }
 
   upsertState(newGamePosition) {
-    if (!this.memories[newGamePosition.getHash()]) {
-      newGamePosition.index = this.positions.length;
+    if (!this.memories[newGamePosition.getHash(this.zobristHash)]) {
       this.positions.push(newGamePosition);
-      this.memories[newGamePosition.getHash()] = newGamePosition;
-      this.memories[newGamePosition.getMirrorHash()] = newGamePosition;
-      return newGamePosition.getHash();
+      this.memories[
+        newGamePosition.getHash(this.zobristHash)
+      ] = newGamePosition;
+      this.memories[
+        newGamePosition.getMirrorHash(this.zobristHash)
+      ] = newGamePosition;
+      return newGamePosition.getHash(this.zobristHash);
     } else {
     }
     return null;
   }
-}
 
-export function findSolution(game) {
-  //try each move for each piece.
-  let index = 0;
-  const start = Date.now();
-  while (index < game.positions.length) {
-    const curr = game.positions[index];
-    // index % 1000 === 0 &&
-    //   console.log(
-    //     `index: ${index} takes ${(Date.now() - start) /
-    //       1000} seconds, hash takes: ${hashTime / 1000} seconds`
-    //   );
-    if (curr.isResolved()) {
-      console.log(`Find a solution: ${index}`);
-      game.solutionCounts++;
-      game.solutions.push(curr.getHash());
-    } else {
-      bfsSearchSolution(game, curr);
+  findSolution() {
+    //try each move for each piece.
+    let index = 0;
+    while (index < this.positions.length) {
+      const curr = this.positions[index];
+      if (curr.isResolved()) {
+        console.log(`Find a solution: ${index}`);
+        this.solutionCounts++;
+        this.solutions.push(curr.getHash());
+      } else {
+        this.bfsSearchSolution(curr);
+      }
+      index++;
     }
-    index++;
   }
-}
 
-const DIRECTIONS = {
-  LEFT: 0,
-  UP: 1,
-  RIGHT: 2,
-  DOWN: 3
-};
-
-const DIRECTIONS_MAP = Object.keys(DIRECTIONS).reduce((prev, curr) => {
-  prev[DIRECTIONS[curr]] = curr;
-  return prev;
-}, {});
-
-function bfsSearchSolution(game, gamePosition) {
-  gamePosition.getPieces().forEach((p, i) => {
-    Object.keys(DIRECTIONS).forEach(d => {
-      const newGamePosition = tryToMovePiece(gamePosition, i, DIRECTIONS[d]);
-      if (!newGamePosition) {
-        return;
-      }
-      game.upsertState(newGamePosition);
-      // continue one step, two same direction step as one step
-      const continueGamePosition = tryToMovePiece(
-        newGamePosition,
-        i,
-        DIRECTIONS[d],
-        true
-      );
-      if (!continueGamePosition) {
-        return;
-      }
-      game.upsertState(continueGamePosition);
+  bfsSearchSolution = gamePosition => {
+    gamePosition.getPieces().forEach((p, i) => {
+      Object.keys(DIRECTIONS).forEach(d => {
+        const newGamePosition = gamePosition.tryToMovePiece(i, DIRECTIONS[d]);
+        if (!newGamePosition) {
+          return;
+        }
+        this.upsertState(newGamePosition);
+        // continue one step, two same direction step as one step
+        const continueGamePosition = newGamePosition.tryToMovePiece(
+          i,
+          DIRECTIONS[d],
+          true
+        );
+        if (!continueGamePosition) {
+          return;
+        }
+        this.upsertState(continueGamePosition);
+      });
     });
-  });
-}
-
-function tryToMovePiece(
-  gamePosition,
-  pieceIndex,
-  direction,
-  isContinuing = false
-) {
-  if (gamePosition.canPieceMoveTo(pieceIndex, direction)) {
-    const newGamePosition = gamePosition.copy();
-    newGamePosition.movePieceTo(pieceIndex, direction);
-
-    // console.log("to check <<<<<<<<<<<<<<<<<<<<<");
-    // gamePosition.printGamePosition();
-    // console.log(
-    //   `move ${JSON.stringify(gamePosition.getPieces()[pieceIndex])} to ${
-    //     DIRECTIONS_MAP[direction]
-    //   }`
-    // );
-    // newGamePosition.printGamePosition();
-    // console.log("finish check >>>>>>>>>>>>>>>>>>>>>>>>>>>");
-
-    newGamePosition.parent = gamePosition;
-    newGamePosition.step++;
-    newGamePosition.move = new Move(pieceIndex, direction, 1);
-    if (isContinuing) {
-      newGamePosition.parent = gamePosition.parent;
-      newGamePosition.step--;
-      newGamePosition.move = new Move(pieceIndex, direction, 2);
-    }
-    return newGamePosition;
-  }
-  return null;
+  };
 }
 
 function play(initialPosition, gamePositions) {
@@ -683,11 +670,11 @@ function play(initialPosition, gamePositions) {
 }
 
 function main() {
-  const gp = new GamePosition();
+  const gp = new GamePosition(4, 5);
   gp.initPosition(gamePositions[1], 1);
   gp.printGamePosition(false);
   const game = new Game(gp);
-  findSolution(game);
+  game.findSolution();
   const endingPosition = game.memories[game.solutions[0]];
   const plays = endingPosition.reversePlay();
   // play(gp, plays);

@@ -1,11 +1,5 @@
 import React, { PureComponent } from "react";
-import {
-  gamePositions,
-  PieceType,
-  Game,
-  GamePosition,
-  findSolution
-} from "./klotski";
+import { gamePositions, PieceType, Game, GamePosition } from "./klotski";
 
 export default class Board extends PureComponent {
   static width = 200;
@@ -20,10 +14,12 @@ export default class Board extends PureComponent {
   }
 
   componentDidMount() {
-    const gamePosition = new GamePosition();
+    const BOARD_WIDTH = 4;
+    const BOARD_HEIGHT = 5;
+    const gamePosition = new GamePosition(BOARD_WIDTH, BOARD_HEIGHT);
     gamePosition.initPosition(this.state.initialPieces, 1);
     const game = new Game(gamePosition);
-    findSolution(game);
+    game.findSolution();
     if (game.solutions.length > 0) {
       console.log("solutions found!");
     }
@@ -45,7 +41,7 @@ export default class Board extends PureComponent {
       } else {
         handle && clearInterval(handle);
       }
-    }, 1000);
+    }, 100);
   };
 
   renderBlocks() {
