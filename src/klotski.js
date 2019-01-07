@@ -662,6 +662,17 @@ export class Game {
       });
     });
   };
+
+  hasSolution() {
+    return this.solutions.length !== 0;
+  }
+
+  getSolution(index = 0) {
+    if (this.solutions.length === 0) {
+      throw new Error("no solutions");
+    }
+    return this.memories[this.solutions[index]].reversePlay();
+  }
 }
 
 function play(initialPosition, gamePositions) {
