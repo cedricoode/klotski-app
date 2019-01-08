@@ -1,33 +1,40 @@
 import React, { PureComponent } from "react";
 import { gamePositions, PieceType, Game, GamePosition } from "./klotski";
 
+const SOLVER_MAX_FRAME_TIME = 100;
 export default class Board extends PureComponent {
   static width = 200;
   static height = 250;
 
   constructor(props) {
     super(props);
+    const initialPieces = gamePositions[props.defaultLayout];
+    const gamePosition = new GamePosition(this.props.width, this.props.height);
+    gamePosition.initPosition(initialPieces, 1);
+    const game = new Game(gamePosition);
 
     this.state = {
-      initialPieces: gamePositions[props.defaultLayout]
+      initialPieces,
+      gamePosition,
+      game,
+      solving: false
     };
   }
 
-  componentDidMount() {
-    const gamePosition = new GamePosition(this.props.width, this.props.height);
-    gamePosition.initPosition(this.state.initialPieces, 1);
-    const game = new Game(gamePosition);
-    game.findSolution();
-    if (game.solutions.length > 0) {
-      console.log("solutions found!");
-    }
-    this.setState({ gamePosition, game });
-  }
+  componentDidMount() {}
 
   handlePlay = () => {
-    const { intervalHandle, autoPlayState } = this.state;
+    const { intervalHandle, game, autoPlayState } = this.state;
 
-    if (autoPlayState === undefined) {
+    if (autoPlayState === undefined && !game.isCalculated()) {
+      this.setState({
+        autoPlayState: "solving"
+      });
+      return requestAnimationFrame(this.frameSolve);
+    }
+    if (autoPlayState === "solving") {
+      return;
+    } else if (autoPlayState === "solved") {
       this.playGame();
     } else if (autoPlayState === "playing") {
       clearInterval(intervalHandle);
@@ -44,6 +51,38 @@ export default class Board extends PureComponent {
         step: undefined
       });
     }
+  };
+
+  frameSolve = () => {
+    //try each move for each piece.
+    let count = 0;
+    const { game } = this.state;
+    while (
+      count < SOLVER_MAX_FRAME_TIME &&
+      game.index < game.positions.length
+    ) {
+      const curr = game.positions[game.index];
+      if (curr.isResolved()) {
+        game.solutionCounts++;
+        game.solutions.push(curr.getHash());
+        if (game.solutionCounts >= 3) {
+          return;
+        }
+      } else {
+        game.bfsSearchSolution(curr);
+      }
+      game.index++;
+      // count % 10 === 0 && console.log(count);
+      count++;
+    }
+    if (game.index >= game.positions.length) {
+      this.setState({
+        autoPlayState: "solved"
+      });
+      return;
+    }
+
+    requestAnimationFrame(this.frameSolve);
   };
 
   playGame() {
@@ -101,11 +140,14 @@ export default class Board extends PureComponent {
   render() {
     const blocks = this.renderBlocks();
     const buttonTextMap = {
+      solving: "Solving...",
       playing: "Pause",
       paused: "Continue",
       finished: "Reinitialize",
-      undefined: "Play"
+      undefined: "Solve",
+      solved: "Play"
     };
+    const { autoPlayState } = this.state;
     return (
       <div>
         <div id="frame">{blocks}</div>
@@ -113,8 +155,9 @@ export default class Board extends PureComponent {
           <button
             style={{ width: 160, height: 40, margin: 24, fontSize: 24 }}
             onClick={this.handlePlay}
+            disabled={autoPlayState === "solving"}
           >
-            {buttonTextMap[this.state.autoPlayState]}
+            {buttonTextMap[autoPlayState]}
           </button>
         </div>
       </div>
