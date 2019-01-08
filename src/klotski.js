@@ -599,6 +599,7 @@ export class Game {
     this.solutions = [];
     this.solutionCounts = 0;
     this.memories = {};
+    this.index = 0;
 
     this.zobristHash = generateZobrisHashMap(
       initialPosition.getBoardWidth(),
@@ -622,7 +623,7 @@ export class Game {
     return null;
   }
 
-  findSolution(maxSolution = 1) {
+  findSolution = (maxSolution = 1) => {
     //try each move for each piece.
     let index = 0;
     while (index < this.positions.length) {
@@ -639,7 +640,7 @@ export class Game {
       }
       index++;
     }
-  }
+  };
 
   bfsSearchSolution = gamePosition => {
     gamePosition.getPieces().forEach((p, i) => {
@@ -665,6 +666,10 @@ export class Game {
 
   hasSolution() {
     return this.solutions.length !== 0;
+  }
+
+  isCalculated() {
+    return this.index >= this.positions.length;
   }
 
   getSolution(index = 0) {
