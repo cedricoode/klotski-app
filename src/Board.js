@@ -1,7 +1,20 @@
 import React, { PureComponent } from "react";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
+
 import { gamePositions, PieceType, Game, GamePosition } from "./klotski";
 
+const SliderWithTooltip = Slider.createSliderWithTooltip(Slider);
+
 const SOLVER_MAX_FRAME_TIME = 100;
+const PRIMAY_BUTTON_TEXT_MAP = {
+  solving: "Solving...",
+  playing: "Pause",
+  paused: "Continue",
+  finished: "Reinitialize",
+  undefined: "Solve",
+  solved: "Play"
+};
 export default class Board extends PureComponent {
   static width = 200;
   static height = 250;
@@ -14,41 +27,53 @@ export default class Board extends PureComponent {
     const game = new Game(gamePosition);
 
     this.state = {
+      playbackSpeed: 400,
       initialPieces,
       gamePosition,
+      iteration: 0,
       game,
+      step: 0,
       solving: false
     };
   }
 
   componentDidMount() {}
 
+  handleAfterChange = value => {
+    this.setState({ playbackSpeed: value });
+    setImmediate(() => {
+      if (this.state.autoPlayState === "paused") {
+        this.playGame();
+      }
+    });
+  };
+
   handlePlay = () => {
-    const { intervalHandle, game, autoPlayState } = this.state;
+    const { game, autoPlayState } = this.state;
 
     if (autoPlayState === undefined && !game.isCalculated()) {
       this.setState({
         autoPlayState: "solving"
       });
-      return requestAnimationFrame(this.frameSolve);
+      game.findSolution();
+      this.setState({
+        autoPlayState: "solved",
+        iteration: game.index
+      });
     }
     if (autoPlayState === "solving") {
       return;
     } else if (autoPlayState === "solved") {
       this.playGame();
     } else if (autoPlayState === "playing") {
-      clearInterval(intervalHandle);
-      this.setState({
-        intervalHandle: undefined,
-        autoPlayState: "paused"
-      });
+      this.pauseGame();
     } else if (autoPlayState === "paused") {
       this.playGame();
     } else if (autoPlayState === "finished") {
       this.setState({
         intervalHandle: undefined,
-        autoPlayState: undefined,
-        step: undefined
+        autoPlayState: "solved",
+        step: 0
       });
     }
   };
@@ -71,6 +96,9 @@ export default class Board extends PureComponent {
       } else {
         game.bfsSearchSolution(curr);
       }
+      this.setState({
+        iteration: game.index
+      });
       game.index++;
       // count % 10 === 0 && console.log(count);
       count++;
@@ -85,13 +113,12 @@ export default class Board extends PureComponent {
     requestAnimationFrame(this.frameSolve);
   };
 
-  playGame() {
+  playGame = () => {
     let { game, plays, step } = this.state;
-    plays = plays || (game.hasSolution() && game.getSolution());
+    plays = plays || game.getSolution();
     if (!plays) {
-      alert("No solution found!");
+      return alert("No solution found!");
     }
-    step = step === undefined ? 0 : step;
     const handle = setInterval(() => {
       if (step < plays.length) {
         this.setState({ step });
@@ -100,14 +127,25 @@ export default class Board extends PureComponent {
         handle && clearInterval(handle);
         this.setState({ intervalHandle: undefined, autoPlayState: "finished" });
       }
-    }, 100);
+    }, this.state.playbackSpeed);
     this.setState({
       intervalHandle: handle,
       autoPlayState: "playing",
       plays,
       step
     });
-  }
+  };
+
+  pauseGame = () => {
+    console.log("pausing game");
+    const { intervalHandle } = this.state;
+    if (intervalHandle) {
+      clearInterval(intervalHandle);
+    }
+    if (this.state.autoPlayState === "playing") {
+      this.setState({ intervalHandle: undefined, autoPlayState: "paused" });
+    }
+  };
 
   getBoardToRender = () => {
     const { autoPlayState, step, plays } = this.state;
@@ -138,27 +176,47 @@ export default class Board extends PureComponent {
     return rslt;
   }
   render() {
-    const blocks = this.renderBlocks();
-    const buttonTextMap = {
-      solving: "Solving...",
-      playing: "Pause",
-      paused: "Continue",
-      finished: "Reinitialize",
-      undefined: "Solve",
-      solved: "Play"
-    };
     const { autoPlayState } = this.state;
     return (
       <div>
-        <div id="frame">{blocks}</div>
+        <div id="frame">{this.renderBlocks()}</div>
         <div>
           <button
             style={{ width: 160, height: 40, margin: 24, fontSize: 24 }}
             onClick={this.handlePlay}
             disabled={autoPlayState === "solving"}
           >
-            {buttonTextMap[autoPlayState]}
+            {PRIMAY_BUTTON_TEXT_MAP[autoPlayState]}
           </button>
+          <div style={{}}>Iterations: {this.state.iteration}</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              margin: 32
+            }}
+          >
+            <div>Playback speed: </div>
+            <SliderWithTooltip
+              railStyle={{ backgroundColor: "#c7ccca" }}
+              trackStyle={{ backgroundColor: "transparent" }}
+              activeDotStyle={{ backgroundColor: "transparent" }}
+              onBeforeChange={this.pauseGame}
+              onAfterChange={this.handleAfterChange}
+              min={0}
+              max={600}
+              step={10}
+              defaultValue={this.state.playbackSpeed}
+              marks={{
+                100: "100",
+                200: "200",
+                300: "300 ms",
+                400: "400",
+                500: "500"
+              }}
+            />
+          </div>
         </div>
       </div>
     );

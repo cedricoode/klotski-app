@@ -1,3 +1,6 @@
+body {
+  background-color: #efefef;
+}
 .App {
   text-align: center;
 }
@@ -34,30 +37,42 @@
 #frame {
   position: relative;
   display: inline-block;
-  background: #996600;
+  /* background: #c7ccca; */
   width: 200px;
   height: 250px;
-  border: 7px ridge brown;
+  border: 7px ridge #787878;
+  background: repeating-linear-gradient(
+    45deg,
+    #8e8e8e,
+    #8e8e8e 10px,
+    #efefef 10px,
+    #efefef 20px
+  );
 }
 
 .block {
   box-sizing: border-box; /* create the border "inside" the element */
-  border: 4px ridge black;
+  border: 4px ridge #686d74;
   position: absolute;
 }
 
 .cube {
-  background: radial-gradient(ellipse at top left, firebrick, red);
+  background: radial-gradient(ellipse at top left, #bd3530, #bd3530);
 }
 
 .v2 {
-  background: radial-gradient(ellipse at top left, navy, blue);
+  background: radial-gradient(ellipse at top left, #d2a052, #d2a052);
 }
 
 .h2 {
-  background: radial-gradient(ellipse at top left, darkgreen, limegreen);
+  background: radial-gradient(ellipse at top left, #6b7c7c, #6b7c7c);
 }
 
 .blk {
-  background: radial-gradient(ellipse at top left, pink, yellow);
+  background: radial-gradient(ellipse at top left, #577b8f, #577b8f);
+}
+
+.rc-slider {
+  width: 240px;
+  margin: 16px;
 }

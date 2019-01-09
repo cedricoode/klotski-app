@@ -625,11 +625,10 @@ export class Game {
 
   findSolution = (maxSolution = 1) => {
     //try each move for each piece.
-    let index = 0;
-    while (index < this.positions.length) {
-      const curr = this.positions[index];
+    this.index = 0;
+    while (this.index < this.positions.length) {
+      const curr = this.positions[this.index];
       if (curr.isResolved()) {
-        console.log(`Find a solution: ${index}`);
         this.solutionCounts++;
         this.solutions.push(curr.getHash());
         if (this.solutionCounts >= maxSolution) {
@@ -638,7 +637,7 @@ export class Game {
       } else {
         this.bfsSearchSolution(curr);
       }
-      index++;
+      this.index++;
     }
   };
 
@@ -674,9 +673,10 @@ export class Game {
 
   getSolution(index = 0) {
     if (this.solutions.length === 0) {
-      throw new Error("no solutions");
+      return null;
     }
-    return this.memories[this.solutions[index]].reversePlay();
+    this.plays = this.memories[this.solutions[index]].reversePlay();
+    return this.plays;
   }
 }
 
