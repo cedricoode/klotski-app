@@ -202,11 +202,11 @@ export const gamePositions = [
 
 class Board {
   constructor(width, height) {
-    if (parseInt(width) !== width) {
+    if (parseInt(width) !== +width) {
       throw new Error("value of width is invalid:  ", width);
     }
 
-    if (parseInt(height) !== height) {
+    if (parseInt(height) !== +height) {
       throw new Error("value of height is invalid: ", height);
     }
     this.width = width;

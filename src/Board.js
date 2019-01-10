@@ -15,29 +15,50 @@ const PRIMAY_BUTTON_TEXT_MAP = {
   undefined: "Solve",
   solved: "Play"
 };
+const DEFAULT_PLAYBACK_SPEED = 400;
 export default class Board extends PureComponent {
   static width = 200;
   static height = 250;
 
   constructor(props) {
     super(props);
-    const initialPieces = gamePositions[props.defaultLayout];
-    const gamePosition = new GamePosition(this.props.width, this.props.height);
-    gamePosition.initPosition(initialPieces, 1);
-    const game = new Game(gamePosition);
-
+    const gameState = this.initializeGame();
     this.state = {
-      playbackSpeed: 400,
-      initialPieces,
-      gamePosition,
-      iteration: 0,
-      game,
-      step: 0,
-      solving: false
+      playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+      ...gameState
     };
   }
 
-  componentDidMount() {}
+  initializeGame() {
+    console.log("initialize game state");
+    console.log(this.props.width, this.props.height);
+    const initialPieces = gamePositions[this.props.defaultLayout];
+    const gamePosition = new GamePosition(this.props.width, this.props.height);
+    gamePosition.initPosition(initialPieces, 1);
+    const game = new Game(gamePosition);
+    return {
+      game,
+      initialPieces,
+      iteration: 0,
+      step: 0,
+      solving: false,
+      autoPlayState: undefined
+    };
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.props.width !== prevProps.width ||
+      this.props.height !== prevProps.height ||
+      this.props.defaultLayout !== prevProps.defaultLayout
+    ) {
+      console.log("component did update");
+      const gameState = this.initializeGame();
+      this.setState({
+        ...gameState
+      });
+    }
+  }
 
   handleAfterChange = value => {
     this.setState({ playbackSpeed: value });
@@ -55,11 +76,13 @@ export default class Board extends PureComponent {
       this.setState({
         autoPlayState: "solving"
       });
-      game.findSolution();
-      this.setState({
-        autoPlayState: "solved",
-        iteration: game.index
-      });
+      setTimeout(() => {
+        game.findSolution();
+        this.setState({
+          autoPlayState: "solved",
+          iteration: game.index
+        });
+      }, 200);
     }
     if (autoPlayState === "solving") {
       return;
@@ -114,8 +137,8 @@ export default class Board extends PureComponent {
   };
 
   playGame = () => {
-    let { game, plays, step } = this.state;
-    plays = plays || game.getSolution();
+    let { game, step } = this.state;
+    let plays = game.getSolution();
     if (!plays) {
       return alert("No solution found!");
     }
@@ -131,7 +154,6 @@ export default class Board extends PureComponent {
     this.setState({
       intervalHandle: handle,
       autoPlayState: "playing",
-      plays,
       step
     });
   };
@@ -148,7 +170,8 @@ export default class Board extends PureComponent {
   };
 
   getBoardToRender = () => {
-    const { autoPlayState, step, plays } = this.state;
+    const { autoPlayState, step, game } = this.state;
+    let plays = game.getSolution();
     if (autoPlayState === "playing" || autoPlayState === "paused") {
       return plays[step].getPieces();
     } else if (autoPlayState === "finished") {
@@ -158,37 +181,20 @@ export default class Board extends PureComponent {
     }
   };
 
-  renderBlocks() {
-    const gamePieces = this.getBoardToRender();
-
-    const blockWidth = Board.width / this.props.width;
-    const blockHeight = Board.height / this.props.height;
-    const rslt = gamePieces.map(gamePiece => {
-      return (
-        <Block
-          gamePiece={gamePiece}
-          blockHeight={blockHeight}
-          blockWidth={blockWidth}
-          key={gamePiece.id}
-        />
-      );
-    });
-    return rslt;
-  }
   render() {
     const { autoPlayState } = this.state;
     return (
       <div>
-        <div id="frame">{this.renderBlocks()}</div>
+        <GameBoard
+          width={this.props.width}
+          height={this.props.height}
+          pieces={this.getBoardToRender()}
+        />
         <div>
-          <button
-            style={{ width: 160, height: 40, margin: 24, fontSize: 24 }}
-            onClick={this.handlePlay}
-            disabled={autoPlayState === "solving"}
-          >
-            {PRIMAY_BUTTON_TEXT_MAP[autoPlayState]}
-          </button>
-          <div style={{}}>Iterations: {this.state.iteration}</div>
+          <div style={{ margin: 16 }}>Iterations: {this.state.iteration}</div>
+          {this.state.step ? (
+            <div style={{ margin: 16 }}>Steps: {this.state.step}</div>
+          ) : null}
           <div
             style={{
               display: "flex",
@@ -211,15 +217,44 @@ export default class Board extends PureComponent {
               marks={{
                 100: "100",
                 200: "200",
-                300: "300 ms",
+                300: "300ms",
                 400: "400",
                 500: "500"
               }}
             />
           </div>
+          <button
+            id="solveBtn"
+            onClick={this.handlePlay}
+            disabled={autoPlayState === "solving"}
+          >
+            {PRIMAY_BUTTON_TEXT_MAP[autoPlayState]}
+          </button>
         </div>
       </div>
     );
+  }
+}
+
+export class GameBoard extends PureComponent {
+  renderBlocks() {
+    const gamePieces = this.props.pieces;
+    const blockWidth = Board.width / this.props.width;
+    const blockHeight = Board.height / this.props.height;
+    const rslt = gamePieces.map(gamePiece => {
+      return (
+        <Block
+          gamePiece={gamePiece}
+          blockHeight={blockHeight}
+          blockWidth={blockWidth}
+          key={gamePiece.id}
+        />
+      );
+    });
+    return rslt;
+  }
+  render() {
+    return <div id="frame">{this.renderBlocks()}</div>;
   }
 }
 
