@@ -391,11 +391,9 @@ class Board {
 
   getZobristHash(hashMap) {
     let hash = 0;
-    for (let i = 0; i < this.height; i++) {
-      for (let j = 0; j < this.width; j++) {
-        hash ^= hashMap[i][j][this.board[i + 1][j + 1].type];
-      }
-    }
+    this.pieces.forEach(piece => {
+      hash ^= hashMap[piece.position.top][piece.position.left][piece.type];
+    });
     return hash;
   }
 
@@ -626,11 +624,17 @@ export class Game {
   findSolution = (maxSolution = 1) => {
     //try each move for each piece.
     this.index = 0;
+    this.startTime = Date.now();
     while (this.index < this.positions.length) {
       const curr = this.positions[this.index];
       if (curr.isResolved()) {
         this.solutionCounts++;
         this.solutions.push(curr.getHash());
+        console.log(
+          "find a solution: ",
+          (Date.now() - this.startTime) / 1000,
+          "seconds"
+        );
         if (this.solutionCounts >= maxSolution) {
           return;
         }
