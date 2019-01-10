@@ -30,8 +30,6 @@ export default class Board extends PureComponent {
   }
 
   initializeGame() {
-    console.log("initialize game state");
-    console.log(this.props.width, this.props.height);
     const initialPieces = gamePositions[this.props.defaultLayout];
     const gamePosition = new GamePosition(this.props.width, this.props.height);
     gamePosition.initPosition(initialPieces, 1);
@@ -52,7 +50,6 @@ export default class Board extends PureComponent {
       this.props.height !== prevProps.height ||
       this.props.defaultLayout !== prevProps.defaultLayout
     ) {
-      console.log("component did update");
       const gameState = this.initializeGame();
       this.setState({
         ...gameState
@@ -123,7 +120,6 @@ export default class Board extends PureComponent {
         iteration: game.index
       });
       game.index++;
-      // count % 10 === 0 && console.log(count);
       count++;
     }
     if (game.index >= game.positions.length) {
@@ -159,7 +155,6 @@ export default class Board extends PureComponent {
   };
 
   pauseGame = () => {
-    console.log("pausing game");
     const { intervalHandle } = this.state;
     if (intervalHandle) {
       clearInterval(intervalHandle);

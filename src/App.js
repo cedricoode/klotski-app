@@ -13,7 +13,6 @@ class App extends Component {
     e.preventDefault();
   }
   handleRadioButtonChange = e => {
-    console.log(e.target);
     this.setState({ defaultLayout: Number(e.target.id) });
   };
   handleChange = e => {
