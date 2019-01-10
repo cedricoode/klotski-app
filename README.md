@@ -1,4 +1,5 @@
 ![favicon](https://github.com/cedricoode/klotski-app/blob/master/public/favicon.ico)
+
 [Demo](https://cedricoode.github.io/klotski-app/)
 
 ## About Klotski
