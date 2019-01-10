@@ -1,68 +1,26 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## About Klotski
 
-## Available Scripts
+"Klotski (from Polish klocki—wooden blocks) is a sliding block puzzle thought to have originated in the early 20th century. The name may refer to a specific layout of ten blocks, or in a more global sense to refer to a whole group of similar sliding-block puzzles where the aim is to move a specific block to some predefined location. " from [wikipedia](https://en.wikipedia.org/wiki/Klotski)
 
-In the project directory, you can run:
+## App screenshots
 
-### `npm start`
+You could choose predefined game position to test the solver
+![Game layouts](https://github.com/cedricoode/klotski-app/blob/master/public/layouts.png)
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+You could try to solve your selected game position by clicking the solve button, once you have a solution, you could use the same button to replay the correct move.
+Even better you could use the slider to change the playback speed!
+![Game operation](https://github.com/cedricoode/klotski-app/blob/master/public/solver.png)
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+## Some considerations
 
-### `npm test`
+1. During the development of the algorithm, I tried various hashing method to save the history of game positions. It turns out [object-hash](https://www.npmjs.com/package/object-hash) is pretty slow no matter how big the object is. It will generally take 5-6 seconds to hash 1000 game positions during the computation. Though it is the obvious choice in regards of the game positions collision, [Zobrist Hashing](https://en.wikipedia.org/wiki/Zobrist_hashing) with a bit higher collision probability is still a sound choice in consideration of its performance, ~40ms for 1000 computations.
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. This application uses BFS algorithm to search for a viable solution, and then visualize the right solution on the page. The default layout is a 4x5 board. It has options to readjust the size of the board. However, this is strongly not recommended, since making the board larger without adding any new pieces onto the board will increase the time of finding a solution exponentially. Running time consuming script is not advised on browser, it will hange the browser. There are multiple techniques to try to solve this problem, one is to use [Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker), another is to use [requestAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame) browser api.
+   RequestAnimationFrame Api will not help a lot here, since it runs in the same thread, the only thing it does is to split the computation within the optimal frame rate budget, so it will only lengthen the computation timespan.
+   So the next thing I would try is to serialize the puzzle configuration and result then offload the work to a service worker.
 
-### `npm run build`
+## TODO List
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- [] offload computation into ServiceWorker
+- [] let user configure board pieces initial position
+- [] let user configure the success situation of the puzzle, e.g. to move the red piece to the center of the board.
