@@ -630,11 +630,11 @@ export class Game {
       if (curr.isResolved()) {
         this.solutionCounts++;
         this.solutions.push(curr.getHash());
-        console.log(
-          "find a solution: ",
-          (Date.now() - this.startTime) / 1000,
-          "seconds"
-        );
+        // console.log(
+        //   "find a solution: ",
+        //   (Date.now() - this.startTime) / 1000,
+        //   "seconds"
+        // );
         if (this.solutionCounts >= maxSolution) {
           return;
         }

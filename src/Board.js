@@ -98,6 +98,42 @@ export default class Board extends PureComponent {
     }
   };
 
+  handleNext = () => {
+    const { autoPlayState, step, game } = this.state;
+    const plays = game.getSolution();
+    if (plays && (autoPlayState === "paused" || autoPlayState === "solved")) {
+      if (step < plays.length - 1) {
+        this.setState({
+          step: step + 1
+        });
+      } else {
+        this.setState({
+          autoPlayState: "finished"
+        });
+      }
+    }
+  };
+
+  handlePrevious = () => {
+    const { autoPlayState, step } = this.state;
+    if (autoPlayState === "finished") {
+      this.setState({
+        step: step - 1,
+        autoPlayState: "paused"
+      });
+    } else if (autoPlayState === "paused") {
+      if (step > 0) {
+        this.setState({
+          step: step - 1
+        });
+      } else {
+        this.setState({
+          autoPlayState: "solved"
+        });
+      }
+    }
+  };
+
   frameSolve = () => {
     //try each move for each piece.
     let count = 0;
@@ -186,10 +222,13 @@ export default class Board extends PureComponent {
           pieces={this.getBoardToRender()}
         />
         <div>
-          <div style={{ margin: 16 }}>Iterations: {this.state.iteration}</div>
-          {this.state.step ? (
-            <div style={{ margin: 16 }}>Steps: {this.state.step}</div>
-          ) : null}
+          <div style={{ margin: 16 }}>
+            <span style={{ margin: 16 }}>
+              Iterations: {this.state.iteration}
+            </span>
+            <span>{this.state.step ? `Steps: ${this.state.step}` : null}</span>
+          </div>
+
           <div
             style={{
               display: "flex",
@@ -218,13 +257,22 @@ export default class Board extends PureComponent {
               }}
             />
           </div>
-          <button
-            id="solveBtn"
-            onClick={this.handlePlay}
-            disabled={autoPlayState === "solving"}
-          >
-            {PRIMAY_BUTTON_TEXT_MAP[autoPlayState]}
-          </button>
+          <div>
+            <button className="control previous" onClick={this.handlePrevious}>
+              &#10094;
+            </button>
+            <button
+              className="control play round"
+              id="solveBtn"
+              onClick={this.handlePlay}
+              disabled={autoPlayState === "solving"}
+            >
+              {PRIMAY_BUTTON_TEXT_MAP[autoPlayState]}
+            </button>
+            <button className="control next" onClick={this.handleNext}>
+              &#10095;
+            </button>
+          </div>
         </div>
       </div>
     );
