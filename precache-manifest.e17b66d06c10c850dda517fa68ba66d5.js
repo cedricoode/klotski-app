@@ -20,7 +20,7 @@ self.__precacheManifest = [
     "url": "/klotski-app/static/css/1.5879ca45.chunk.css"
   },
   {
-    "revision": "92fc444a00cedeab0512c46940da0d6a",
+    "revision": "fd1e8f6e69f826ba879b611aa726eeb2",
     "url": "/klotski-app/index.html"
   }
 ];
