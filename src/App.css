@@ -1,5 +1,6 @@
 body {
   background-color: #efefef;
+  padding-top: 32px;
 }
 .App {
   text-align: center;
@@ -75,4 +76,24 @@ body {
 .rc-slider {
   width: 240px;
   margin: 16px;
+}
+
+#solveBtn {
+  background-color: #006494;
+  border-radius: 10px;
+  border: 1px solid #04638f;
+  display: inline-block;
+  cursor: pointer;
+  color: #e8f1f2;
+  font-family: Arial;
+  font-size: 17px;
+  padding: 14px 31px;
+  text-decoration: none;
+}
+#solveBtn:hover {
+  background-color: #006594da;
+}
+#myButton:active {
+  position: relative;
+  top: 1px;
 }
