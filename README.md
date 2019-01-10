@@ -19,8 +19,11 @@ Even better you could use the slider to change the playback speed!
    RequestAnimationFrame Api will not help a lot here, since it runs in the same thread, the only thing it does is to split the computation within the optimal frame rate budget, so it will only lengthen the computation timespan.
    So the next thing I would try is to serialize the puzzle configuration and result then offload the work to a service worker.
 
+3. The algorithm now has a hard-coded parameter being used to calculate only one optimal result. Once found the result is returned and the algorithm will not bother to find all other results.
+
 ## TODO List
 
 - [] offload computation into ServiceWorker
 - [] let user configure board pieces initial position
 - [] let user configure the success situation of the puzzle, e.g. to move the red piece to the center of the board.
+- [] refactor code and clean up algorithm
