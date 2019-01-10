@@ -1,15 +1,15 @@
 {
-  "main.css": "/website/static/css/main.8c0b13ea.chunk.css",
-  "main.js": "/website/static/js/main.3c6b7636.chunk.js",
-  "main.js.map": "/website/static/js/main.3c6b7636.chunk.js.map",
-  "static/css/1.5879ca45.chunk.css": "/website/static/css/1.5879ca45.chunk.css",
-  "static/js/1.1cfc9b12.chunk.js": "/website/static/js/1.1cfc9b12.chunk.js",
-  "static/js/1.1cfc9b12.chunk.js.map": "/website/static/js/1.1cfc9b12.chunk.js.map",
-  "runtime~main.js": "/website/static/js/runtime~main.df8eefd1.js",
-  "runtime~main.js.map": "/website/static/js/runtime~main.df8eefd1.js.map",
-  "static/css/1.5879ca45.chunk.css.map": "/website/static/css/1.5879ca45.chunk.css.map",
-  "static/css/main.8c0b13ea.chunk.css.map": "/website/static/css/main.8c0b13ea.chunk.css.map",
-  "index.html": "/website/index.html",
-  "precache-manifest.bc594b4011f04b953b39549596bd162f.js": "/website/precache-manifest.bc594b4011f04b953b39549596bd162f.js",
-  "service-worker.js": "/website/service-worker.js"
+  "main.css": "/klotski-app/static/css/main.8c0b13ea.chunk.css",
+  "main.js": "/klotski-app/static/js/main.b6c9cc68.chunk.js",
+  "main.js.map": "/klotski-app/static/js/main.b6c9cc68.chunk.js.map",
+  "static/css/1.5879ca45.chunk.css": "/klotski-app/static/css/1.5879ca45.chunk.css",
+  "static/js/1.1cfc9b12.chunk.js": "/klotski-app/static/js/1.1cfc9b12.chunk.js",
+  "static/js/1.1cfc9b12.chunk.js.map": "/klotski-app/static/js/1.1cfc9b12.chunk.js.map",
+  "runtime~main.js": "/klotski-app/static/js/runtime~main.7a726a57.js",
+  "runtime~main.js.map": "/klotski-app/static/js/runtime~main.7a726a57.js.map",
+  "static/css/1.5879ca45.chunk.css.map": "/klotski-app/static/css/1.5879ca45.chunk.css.map",
+  "static/css/main.8c0b13ea.chunk.css.map": "/klotski-app/static/css/main.8c0b13ea.chunk.css.map",
+  "index.html": "/klotski-app/index.html",
+  "precache-manifest.13242a14026efbd23b7e56958c40234b.js": "/klotski-app/precache-manifest.13242a14026efbd23b7e56958c40234b.js",
+  "service-worker.js": "/klotski-app/service-worker.js"
 }
