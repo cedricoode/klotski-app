@@ -1,3 +1,6 @@
+![favicon](https://github.com/cedricoode/klotski-app/blob/master/public/favicon.ico)
+[Demo](https://cedricoode.github.io/klotski-app/)
+
 ## About Klotski
 
 "Klotski (from Polish klocki—wooden blocks) is a sliding block puzzle thought to have originated in the early 20th century. The name may refer to a specific layout of ten blocks, or in a more global sense to refer to a whole group of similar sliding-block puzzles where the aim is to move a specific block to some predefined location. " from [wikipedia](https://en.wikipedia.org/wiki/Klotski)
