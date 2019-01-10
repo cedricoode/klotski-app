@@ -2,6 +2,8 @@
 
 "Klotski (from Polish klocki—wooden blocks) is a sliding block puzzle thought to have originated in the early 20th century. The name may refer to a specific layout of ten blocks, or in a more global sense to refer to a whole group of similar sliding-block puzzles where the aim is to move a specific block to some predefined location. " from [wikipedia](https://en.wikipedia.org/wiki/Klotski)
 
+In this application, **the rule is a bit different**. In traditional Klotski puzzle, a move is counted as moving a piece once(no matter in which direction), e.g. a single block piece moving right and then up continuously counts as one step, however in this application one step means a piece moves only in one direction a time, that's why this application's shortest solution is logger that traditional one's.
+
 ## App screenshots
 
 You could choose predefined game position to test the solver
